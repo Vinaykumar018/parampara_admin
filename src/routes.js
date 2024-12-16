@@ -6,7 +6,7 @@ import EnquiriesList from './views/enquries/EnquiriesList';
 const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'));
 const PoojaForm=React.lazy(()=>import ('./views/Pooja/PoojaList/AddPoojaForm'))
 
-
+const EditPandit=React.lazy(()=>import ('./views/pandit/editPandit'))
 //users
 
 const Users=React.lazy(()=>import('./views/users/Users'));
@@ -123,6 +123,7 @@ const routes = [
   //pandit
 
   { path: '/pandit', name: 'Pandit', element:Pandit},
+  { path: 'edit-pandit/:id', name: 'Pandit', element:EditPandit},
  
 
   //only pooja 

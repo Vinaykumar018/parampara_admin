@@ -103,13 +103,13 @@ export const deletePoojaCategory = async (id) => {
   }
 };
 
-export const updatePoojaData = async (updatedData) => {
+export const updatePoojaData = async (id,updatedData) => {
 
   try {
-    const response = await axios.put(`${BASE_URL}/update/${id}`, updatedData, {
+    const response = await axios.put(`${BASE_URL}/update-pooja/${id}`, updatedData, {
       headers: {
         Authorization: AUTH_TOKEN,
-        'Content-Type': 'multipart/form-data',
+       
       },
     });
     return response.data; // Return response data to the calling component
@@ -126,6 +126,7 @@ export const UpdatePoojaCategory = async (id, updatedData) => {
     const response = await axios.put(`${BASE_URL}/category/update-category/${id}`, updatedData, {
       headers: {
         Authorization: AUTH_TOKEN,
+        
        
       },
     });

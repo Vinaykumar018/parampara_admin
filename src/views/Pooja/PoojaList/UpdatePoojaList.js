@@ -1,16 +1,16 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import RichTextEditor from 'react-rte'; 
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-// import { UpdatePoojaCategory } from '../../Services/poojaApiService';
-import { UpdatePoojaCategory } from '../../Services/poojaApiService';
-
+import { fetchCategories, updatePoojaData } from '../../Services/poojaApiService';
 
 const UpdatePoojaList = () => {
+  const { id } = useParams();
   const [isSamagriChecked, setIsSamagriChecked] = useState(false);
   const [formData, setFormData] = useState({
     pooja_name: "",
+    slug_url: '',
     pooja_category: "",
     pooja_Samegristatus: "0",
     price_withSamagri: "",
@@ -18,36 +18,52 @@ const UpdatePoojaList = () => {
     pooja_image: null,
     short_discription: "",
     long_discription: RichTextEditor.createEmptyValue(),
-    samagriName: "",
-    samagriPrice: "",
-    samagri_discription: "",
+    samagridynamicFields: [] // Array to hold dynamic input fields data
   });
   const [imagePreview, setImagePreview] = useState(null);
   const navigate = useNavigate();
-
   const [dynamicSamagriData, setDynamicSamagriData] = useState([{
     samagriName: '',
     samagriPrice: '',
     samagriDescription: ''
   }]);
+  const [categoryData, setCategoryData] = useState([]);
 
   const handleDynamicFieldChange = (index, fieldName) => (e) => {
     const { value } = e.target;
-    const updatedSamagriData = [...dynamicSamagriData];
-    updatedSamagriData[index][fieldName] = value;
-    setDynamicSamagriData(updatedSamagriData);
+    const newFields = [...formData.samagridynamicFields];
+    newFields[index][fieldName] = value;
+    setFormData((prevData) => ({
+      ...prevData,
+      samagridynamicFields: newFields,
+    }));
   };
 
-  const addMoreFields = () => {
-    setDynamicSamagriData([
-      ...dynamicSamagriData,
-      { samagriName: '', samagriPrice: '', samagriDescription: '' }
-    ]);
+  const addDynamicField = () => {
+    setFormData((prevData) => ({
+      ...prevData,
+      samagridynamicFields: [
+        ...prevData.samagridynamicFields,
+        { samagriName: "", samagriPrice: "", samagriDescription: "" }
+      ],
+    }));
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prevData) => ({ ...prevData, [name]: value }));
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+      slug_url: name === 'pooja_name' ? generateSlug(value) : prevData.slug_url,
+    }));
+  };
+
+  const generateSlug = (value) => {
+    return value
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .trim()
+      .replace(/\s+/g, '-');
   };
 
   const handleFileChange = (e) => {
@@ -79,34 +95,14 @@ const UpdatePoojaList = () => {
     });
 
     if (isSamagriChecked) {
-      // Convert dynamicSamagriData to JSON string and append it
-      data.append('samagriData', JSON.stringify(dynamicSamagriData));
-    }
-
-    // Log the FormData for debugging
-    for (let pair of data.entries()) {
-      console.log(pair[0] + ', ' + pair[1]);
+      data.append('samagriData', JSON.stringify(formData.samagridynamicFields));
     }
 
     try {
-      const response = await UpdatePoojaCategory(formData.id, data);
+      const response = await updatePoojaData(id, data);
       if (response.status === 1) {
         toast.success('Pooja updated successfully');
-        setFormData({
-          pooja_name: "",
-          pooja_category: "",
-          pooja_Samegristatus: "0",
-          price_withSamagri: "",
-          price_withoutSamagri: "",
-          pooja_image: null,
-          short_discription: "",
-          long_discription: RichTextEditor.createEmptyValue(),
-          samagriName: "",
-          samagriPrice: "",
-          samagri_discription: "",
-        });
-        setDynamicSamagriData([{ samagriName: '', samagriPrice: '', samagriDescription: '' }]); // Reset dynamic fields
-        setImagePreview(null);
+        resetForm();
       }
     } catch (error) {
       toast.error("Failed to update Pooja. Please try again.");
@@ -114,14 +110,46 @@ const UpdatePoojaList = () => {
     }
   };
 
+  const resetForm = () => {
+    setFormData({
+      pooja_name: "",
+      slug_url: '',
+      pooja_category: "",
+      pooja_Samegristatus: "0",
+      price_withSamagri: "",
+      price_withoutSamagri: "",
+      pooja_image: null ,
+      short_discription: "",
+      long_discription: RichTextEditor.createEmptyValue(),
+      samagridynamicFields: []
+    });
+    setDynamicSamagriData([{ samagriName: '', samagriPrice: '', samagriDescription: '' }]);
+    setImagePreview(null);
+  };
+
   const handleCheckboxChange = (e) => {
     const checked = e.target.checked;
- setIsSamagriChecked(checked);
+    setIsSamagriChecked(checked);
     setFormData((prevData) => ({
       ...prevData,
       pooja_Samegristatus: checked ? "1" : "0"
     }));
   };
+
+  const loadCategories = async () => {
+    try {
+      const result = await fetchCategories();
+      if (result.status === 1) {
+        setCategoryData(result.data);
+      }
+    } catch (error) {
+      console.error("Error loading categories:", error);
+    }
+  };
+
+  useEffect(() => {
+    loadCategories();
+  }, []);
 
   return (
     <div className="card-body bg-light">
@@ -144,22 +172,39 @@ const UpdatePoojaList = () => {
                       placeholder="Enter Pooja Name"
                       value={formData.pooja_name}
                       onChange={handleInputChange}
-                      required
+                      
+                    />
+                  </div>
+
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label">Pooja Slug</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="slug_url"
+                      placeholder="Slug will be generated automatically"
+                      value={formData.slug_url}
+                      readOnly
                     />
                   </div>
 
                   {/* Pooja Category */}
                   <div className="col-md-6 mb-3">
-                    <label className="form-label">Pooja Category</label>
-                    <input
-                      type="text"
-                      className="form-control"
+                    <label className="form-label">Choose Category</label>
+                    <select
+                      className="form-control form-select"
                       name="pooja_category"
-                      placeholder="Enter Pooja Category"
                       value={formData.pooja_category}
                       onChange={handleInputChange}
-                      required
-                    />
+                      
+                    >
+                      <option value="" disabled>Select Category</option>
+                      {categoryData.map((category) => (
+                        <option key={category._id} value={category._id}>
+                          {category.category}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
                   {/* Price With Samagri */}
@@ -172,7 +217,7 @@ const UpdatePoojaList = () => {
                       placeholder="Enter Price With Samagri"
                       value={formData.price_withSamagri}
                       onChange={handleInputChange}
-                      required
+                      
                     />
                   </div>
 
@@ -186,7 +231,7 @@ const UpdatePoojaList = () => {
                       placeholder="Enter Price Without Samagri"
                       value={formData.price_withoutSamagri}
                       onChange={handleInputChange}
-                      required
+                      
                     />
                   </div>
 
@@ -198,7 +243,7 @@ const UpdatePoojaList = () => {
                       className="form-control"
                       accept="image/*"
                       onChange={handleFileChange}
-                      required
+                      
                     />
                   </div>
 
@@ -215,7 +260,7 @@ const UpdatePoojaList = () => {
                   )}
 
                   {/* Short Description */}
-                  <div className="col-md-8 mb-3">
+                  <div className="col-md- 8 mb-3">
                     <label className="form-label">Short Description</label>
                     <textarea
                       className="form-control"
@@ -224,7 +269,7 @@ const UpdatePoojaList = () => {
                       name="short_discription"
                       value={formData.short_discription}
                       onChange={handleInputChange}
-                      required
+                      
                     />
                   </div>
 
@@ -253,14 +298,14 @@ const UpdatePoojaList = () => {
                         type="checkbox"
                         className="form-check-input"
                         checked={isSamagriChecked}
-                        onChange={ handleCheckboxChange}
+                        onChange={handleCheckboxChange}
                       />
-                      <label className="form-check-label">Is Samagri Included?</label>
+                      <label className="form-check-label">Include Samagri</label>
                     </div>
                   </div>
 
                   {/* Dynamic Samagri Fields */}
-                  {isSamagriChecked && dynamicSamagriData.map((field, index) => (
+                  {isSamagriChecked && formData.samagridynamicFields.map((field, index) => (
                     <div key={index} className="mb-3 row">
                       <div className="col-md-4">
                         <input
@@ -291,11 +336,11 @@ const UpdatePoojaList = () => {
                       </div>
                     </div>
                   ))}
-                  
+
                   {/* Add More Samagri Fields */}
                   {isSamagriChecked && (
                     <div className="col-12 mb-3">
-                      <button type="button" className="btn btn-primary" onClick={addMoreFields}>
+                      <button type="button" className="btn btn-primary" onClick={addDynamicField}>
                         Add More Fields
                       </button>
                     </div>
