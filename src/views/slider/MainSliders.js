@@ -5,7 +5,7 @@ import "react-toastify/dist/ReactToastify.css"; // Import Toastify CSS
 import GetTable from "../dashboard/GetTable";
 import SliderForm from "./MainSliderForm"; // Import the new SliderForm component
 import { getAllSliders, createSlider, getCategories,deleteSlider } from "../Services/sliderApiService";
-
+import { updateSliderStatus } from "../Services/sliderApiService";
 const Slider = () => {
   const [sliderData, setSliderData] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -94,6 +94,27 @@ const [sliderToDelete,setSliderToDelete]=useState()
       }
     };
 
+    const handleStatusChange = async (sliderId, currentStatus) => {
+        console.log(sliderId,currentStatus)
+        const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+    
+        try {
+          const response = await updateSliderStatus(sliderId, newStatus);
+    
+          if (response.status === 1) {
+    
+            toast.success(`Status updated to ${newStatus}`);
+           fetchSliderData()
+          } else {
+            toast.error('Failed to update status');
+          }
+        } catch (error) {
+          toast.error('An error occurred while updating status');
+        }
+      };
+    
+
+
   // Table columns for Sliders
   const columns = [
     { name: "S No.", selector: (row, index) => index + 1 },
@@ -112,6 +133,24 @@ const [sliderToDelete,setSliderToDelete]=useState()
         ) : (
           "N/A"
         ),
+    },
+
+    {
+      name: "Status",
+      selector: (row) => (
+        <div>
+          
+         <CButton
+                    className="btn btn-secondary btn-sm"
+                    onClick={() => handleStatusChange(row._id, row.status)}
+                  >
+                    {row.status}
+                  </CButton>
+        </div>
+      ),
+      ignoreRowClick: true,
+      allowOverflow: true,
+      button: true,
     },
     {
       name: "Action",

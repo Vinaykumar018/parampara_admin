@@ -87,4 +87,28 @@ export const deleteSliderCategory = async (id) => {
 };
 
 
+export const updateSliderStatus = async (sliderId, newStatus) => {
+  try {
+    console.log(apiUrl,'/update-status')
+    console.log(sliderId,newStatus)
+    const response = await axios.put(
+      (`${apiUrl}/update-status`),
+      {
+        sliderId:sliderId,
+        newStatus:newStatus,
+      },
+      {
+        headers,
+      },
+    );
+
+    return response.data; // Return API response for further use
+  } catch (error) {
+    console.error('Error updating slider category status:', error);
+    throw error; // Propagate error for error handling
+  }
+};
+
+
+
 

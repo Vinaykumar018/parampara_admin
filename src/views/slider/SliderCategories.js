@@ -1,12 +1,16 @@
-import React, { useState, useEffect } from "react";
-import { CButton, CSpinner } from "@coreui/react";
-import GetTable from "../dashboard/GetTable";
-import { getCategories, createCategory } from "../Services/sliderApiCategoryService";
-import SliderFormCategory from "./SliderFormCategory";
-import { toast, ToastContainer } from "react-toastify"; // Import Toastify
-import "react-toastify/dist/ReactToastify.css"; 
-import { deleteSliderCategory } from "../Services/sliderApiService";
-import UpdateSliderCategoryForm from "./UpdateSliderCategoryForm";
+import React, { useState, useEffect } from 'react';
+import { CButton, CSpinner } from '@coreui/react';
+import GetTable from '../dashboard/GetTable';
+import {
+  getCategories,
+  createCategory,
+} from '../Services/sliderApiCategoryService';
+import SliderFormCategory from './SliderFormCategory';
+import { toast, ToastContainer } from 'react-toastify'; // Import Toastify
+import 'react-toastify/dist/ReactToastify.css';
+import { deleteSliderCategory } from '../Services/sliderApiService';
+import UpdateSliderCategoryForm from './UpdateSliderCategoryForm';
+import { updateSliderCategoryStatus } from '../Services/sliderApiCategoryService';
 
 const SliderCategoryList = () => {
   const [categoryData, setCategoryData] = useState([]);
@@ -23,7 +27,7 @@ const SliderCategoryList = () => {
         setCategoryData(result.data);
       }
     } catch (error) {
-      console.error("Error fetching category data:", error);
+      console.error('Error fetching category data:', error);
     } finally {
       setLoading(false);
     }
@@ -36,20 +40,20 @@ const SliderCategoryList = () => {
   const handleFormSubmit = async (formData) => {
     try {
       const form = new FormData();
-      form.append("name", formData.name);
-      form.append("image", formData.image);
-      form.append("category", formData.category);
+      form.append('name', formData.name);
+      form.append('image', formData.image);
+      form.append('category', formData.category);
 
       const result = await createCategory(form);
       if (result.status === 1) {
-        toast.success("Slider category created successfully!");
+        toast.success('Slider category created successfully!');
         fetchCategoryData();
       } else {
-        toast.error("Failed to create Slider category.");
+        toast.error('Failed to create Slider category.');
       }
     } catch (error) {
-      console.error("Error creating category:", error);
-      toast.error("An error occurred while creating the Slider category.");
+      console.error('Error creating category:', error);
+      toast.error('An error occurred while creating the Slider category.');
     }
   };
 
@@ -66,15 +70,17 @@ const SliderCategoryList = () => {
     try {
       const response = await deleteSliderCategory(sliderToDelete);
       if (response.status === 1) {
-        toast.success("Slider Category deleted successfully!");
-        setCategoryData(categoryData.filter((item) => item._id !== sliderToDelete));
+        toast.success('Slider Category deleted successfully!');
+        setCategoryData(
+          categoryData.filter((item) => item._id !== sliderToDelete),
+        );
         setShowModal(false);
       } else {
-        toast.error("Failed to delete category.");
+        toast.error('Failed to delete category.');
       }
     } catch (error) {
-      toast.error("Error deleting category. Please try again.");
-      console.error("Error deleting category:", error);
+      toast.error('Error deleting category. Please try again.');
+      console.error('Error deleting category:', error);
     }
   };
 
@@ -83,29 +89,71 @@ const SliderCategoryList = () => {
     setEditModalVisible(true); // Show the edit modal
   };
 
+  const handleStatusChange = async (sliderCatId, currentStatus) => {
+    console.log(sliderCatId,currentStatus)
+    const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+
+    try {
+      const response = await updateSliderCategoryStatus(sliderCatId, newStatus);
+
+      if (response.status === 1) {
+
+        toast.success(`Status updated to ${newStatus}`);
+        fetchCategoryData()
+      } else {
+        toast.error('Failed to update status');
+      }
+    } catch (error) {
+      toast.error('An error occurred while updating status');
+    }
+  };
+
   const columns = [
-    { name: "S No.", selector: (row, index) => index + 1 },
-    { name: "Slider Category", selector: (row) => row.name },
+    { name: 'S No.', selector: (row, index) => index + 1 },
+    { name: 'Slider Category', selector: (row) => row.name },
     {
-      name: "Slider Category Image",
+      name: 'Slider Category Image',
       selector: (row) =>
         row.image ? (
           <img src={`${row.image}`} alt={row.name} width={50} height={30} />
         ) : (
-          "N/A"
+          'N/A'
         ),
     },
     {
-      name: "Action",
+      name: 'Action',
       selector: (row) => (
         <div>
-          <CButton color="danger" onClick={() => handleDelete(row._id)}>Delete</CButton>
-          <CButton color="primary" onClick={() => handleEdit(row._id, row.name, row.image)}>Edit</CButton>
+          <CButton
+            className="btn btn-danger btn-sm text-white"
+            onClick={() => handleDelete(row._id)}
+          >
+            Delete
+          </CButton>
+          <CButton
+            className="btn btn-primary btn-sm me-2"
+            onClick={() => handleEdit(row._id, row.name, row.image)}
+          >
+            Edit
+          </CButton>
         </div>
       ),
       ignoreRowClick: true,
       allowOverflow: true,
       button: true,
+    },
+    {
+      name: 'Status',
+      selector: (row) => (
+        <div>
+          <CButton
+            className="btn btn-secondary btn-sm"
+            onClick={() => handleStatusChange(row._id, row.status)}
+          >
+            {row.status}
+          </CButton>
+        </div>
+      ),
     },
   ];
 
@@ -123,7 +171,11 @@ const SliderCategoryList = () => {
             <CSpinner color="primary" />
           </div>
         ) : (
-          <GetTable data={categoryData} columns={columns} title="Category List" />
+          <GetTable
+            data={categoryData}
+            columns={columns}
+            title="Category List"
+          />
         )}
       </div>
 
@@ -147,19 +199,48 @@ const ConfirmDeleteModal = ({ show, onClose, onConfirm }) => {
   if (!show) return null;
 
   return (
-    <div className="modal show" tabIndex="-1" style={{ display: "block", backgroundColor: "rgba(0, 0, 0, 0.5)" }}>
-      <div className="modal-dialog modal-dialog-centered" style={{ maxWidth: "400px" }}>
-        <div className="modal-content" style={{ fontFamily: "'Roboto', sans-serif", borderRadius: "12px" }}>
+    <div
+      className="modal show"
+      tabIndex="-1"
+      style={{ display: 'block', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+    >
+      <div
+        className="modal-dialog modal-dialog-centered"
+        style={{ maxWidth: '400px' }}
+      >
+        <div
+          className="modal-content"
+          style={{ fontFamily: "'Roboto', sans-serif", borderRadius: '12px' }}
+        >
           <div className="modal-header">
             <h5 className="modal-title fw-bold">Confirm Deletion</h5>
-            <button type="button" className="btn-close" onClick={onClose} aria-label="Close"></button>
+            <button
+              type="button"
+              className="btn-close"
+              onClick={onClose}
+              aria-label="Close"
+            ></button>
           </div>
           <div className="modal-body text-center">
-            <p style={{ fontWeight: "500" }}>Are you sure you want to delete this Slider?</p>
+            <p style={{ fontWeight: '500' }}>
+              Are you sure you want to delete this Slider?
+            </p>
           </div>
           <div className="modal-footer d-flex justify-content-between">
-            <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
-            <button type="button" className="btn btn-danger" onClick={onConfirm}>Delete</button>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={onClose}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="btn btn-danger"
+              onClick={onConfirm}
+            >
+              Delete
+            </button>
           </div>
         </div>
       </div>
@@ -168,4 +249,3 @@ const ConfirmDeleteModal = ({ show, onClose, onConfirm }) => {
 };
 
 export default SliderCategoryList;
-
