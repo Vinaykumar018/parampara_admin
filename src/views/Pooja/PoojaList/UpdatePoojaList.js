@@ -4,23 +4,26 @@ import RichTextEditor from 'react-rte';
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { fetchCategories, updatePoojaData } from '../../Services/poojaApiService';
-
+import { useLocation } from 'react-router-dom';
 const UpdatePoojaList = () => {
   const { id } = useParams();
   const [isSamagriChecked, setIsSamagriChecked] = useState(false);
+  const location = useLocation();
+  const { poojaData } = location.state || {};
+  console.log(poojaData)
   const [formData, setFormData] = useState({
-    pooja_name: "",
-    slug_url: '',
-    pooja_category: "",
-    pooja_Samegristatus: "0",
-    price_withSamagri: "",
-    price_withoutSamagri: "",
-    pooja_image: null,
-    short_discription: "",
+    pooja_name: poojaData?.pooja_name || "",
+    slug_url: poojaData?.slug_url || "",
+    pooja_category: poojaData?.pooja_category || "",
+    pooja_Samegristatus: poojaData?.pooja_Samegristatus || "0",
+    price_withSamagri: poojaData?.price_withSamagri || "",
+    price_withoutSamagri: poojaData?.price_withoutSamagri || "",
+    pooja_image: poojaData?.pooja_image || null,
+    short_discription: poojaData?.short_discription || "",
     long_discription: RichTextEditor.createEmptyValue(),
     samagridynamicFields: [] // Array to hold dynamic input fields data
   });
-  const [imagePreview, setImagePreview] = useState(null);
+  const [imagePreview, setImagePreview] = useState("poojaData?.pooja_image || null");
   const navigate = useNavigate();
   const [dynamicSamagriData, setDynamicSamagriData] = useState([{
     samagriName: '',

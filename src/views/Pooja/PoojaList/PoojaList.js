@@ -43,8 +43,17 @@ const PoojaList = () => {
 
   const handleEdit = (id) => {
     
+    const poojaToEdit = poojaData.find(pooja => pooja._id === id);
     navigate(`/pooja/pooja-update-list/${id}`);
+
+    if (poojaToEdit) {
+      // Navigate to the edit page and pass the pooja data as state
+      navigate(`/pooja/pooja-update-list/${id}`, { state: { poojaData: poojaToEdit } });
+    } else {
+      toast.error("Pooja data not found!");
+    }
   };
+  
 
   const handleDelete = (id) => {
     setPoojaToDelete(id);
