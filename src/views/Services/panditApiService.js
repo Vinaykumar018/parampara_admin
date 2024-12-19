@@ -79,6 +79,20 @@ export const updatePanditDetails = async (formData, image, aadharImage) => {
 };
 
 
+//create
 
+export const createPandit = async (data) => {
+  try {
+    await axios.post(`${BASE_URL}/pandit/create-pandit`, data, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+        Authorization: AUTH_TOKEN,
+      },
+    });
+  } catch (error) {
+    console.error('Error creating Pandit:', error);
+    throw error;
+  }
+};
 
 

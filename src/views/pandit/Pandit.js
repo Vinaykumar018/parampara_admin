@@ -84,10 +84,17 @@ const usersData = [
 const navigate = useNavigate(); // Initialize useNavigate
 
 // Handle Edit - Navigate to the edit page with the ID in params
-const handleEdit = (id) => {
+const handleEdit = (id, row,rowImg,rowAdharImg) => {
+
  
-  navigate(`/edit-pandit/${id}`); // Navigate to the edit URL
+  navigate(`/edit-pandit/${id}`, { state: { row,rowImg,rowAdharImg } }); // Pass row data as state
 };
+ 
+
+  const navigateToAddPandit = () => {
+    
+    navigate('/pandit/add-pandit');
+  };
 
 
   const columns = [
@@ -145,7 +152,7 @@ const handleEdit = (id) => {
           <button
             onClick={() =>
               handleEdit(
-                row._id)
+                row._id,row,row.image,row.aadhar_image)
             }
             className="btn btn-primary btn-sm me-2"
           >
@@ -176,7 +183,13 @@ return (
        <div className="card-header bg-dark text-white py-2">
          <div className="d-flex align-items-center justify-content-between">
            <h6 className="mb-0">Pandit List</h6>
-         
+           <a
+        href="javascript:void(0)"
+        className="btn btn-warning text-dark btn-sm"
+        onClick={navigateToAddPandit}
+      >
+        Add Pandit
+      </a>
          </div>
        </div>
        {loading ? (

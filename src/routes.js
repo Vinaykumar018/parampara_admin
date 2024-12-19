@@ -7,6 +7,7 @@ const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'));
 const PoojaForm=React.lazy(()=>import ('./views/Pooja/PoojaList/AddPoojaForm'))
 
 const EditPandit=React.lazy(()=>import ('./views/pandit/editPandit'))
+const AddPandit=React.lazy(()=>import('./views/pandit/addPandit'))
 //users
 
 const Users=React.lazy(()=>import('./views/users/Users'));
@@ -21,6 +22,7 @@ const PoojaBookingList=React.lazy(()=>import('./views/Pooja/BookingList'))
 //pooja archana routes
 const PoojaArchana=React.lazy(()=>import('./views/PoojaArchana/PoojaArchana'));
 const PoojaArchanaCategory=React.lazy(()=>import('./views/PoojaArchana/PoojaArchanaCategory'));
+
 
 //bHAVYA AYOJAN
 
@@ -124,6 +126,7 @@ const routes = [
 
   { path: '/pandit', name: 'Pandit', element:Pandit},
   { path: 'edit-pandit/:id', name: 'Pandit', element:EditPandit},
+  {path:"/pandit/add-pandit",name:"add Pandit",element:AddPandit},
  
 
   //only pooja 

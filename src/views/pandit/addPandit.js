@@ -2,26 +2,15 @@
 
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { updatePanditDetails } from "../Services/panditApiService"; // Ensure this API function is working
-import { toast } from "react-toastify";
-import { useLocation } from "react-router-dom";
- // If you're using toast for success or error messages
+import { createPandit } from "../Services/panditApiService"; // Ensure this API function is working
+import { toast } from "react-toastify"; // If you're using toast for success or error messages
 
-const EditPandit = () => {
-
-  const location = useLocation();
-  
-  const { row,rowImg,rowAdharImg } = location.state;
-  const [profileData, setProfileData] = useState(null);
-  const [image, setImage] = useState(null);
-  const [aadharImage, setAadharImage] = useState(null);
-  
-
+const AddPandit = () => {
   const [formData, setFormData] = useState({
     username: "",
     email: "",
     password: "",
-    phone: "",
+   mobile: "",
     address: "",
     gender: "male",
     city: "",
@@ -44,40 +33,9 @@ const EditPandit = () => {
     fcm_tokken: "",
   });
 
-  useEffect(() => {
-    if (row) {
-      setFormData({
-        username: row.username || "",
-        email: row.email || "",
-        password: row.password || "",
-        phone: row.mobile || "",
-        address: row.address || "",
-        gender: row.gender || "male",
-        city: row.city || "",
-        state: row.state || "",
-        country: row.country || "",
-        dob: row.dob || "",
-        pincode: row.pincode || "",
-        skills: row.skills || "",
-        account_type: row.account_type || "normal",
-        pancard_no: row.pancard_no || "",
-        degree: row.degree || "",
-        bank_ac_no: row.bank_ac_no || "",
-        ifsc_code: row.ifsc_code || "",
-        acc_holder_name: row.acc_holder_name || "",
-        bank_name: row.bank_name || "",
-        bio: row.bio || "",
-        type: row.type || "",
-        register_id: row.register_id || "",
-        booking_status: row.booking_status || "active",
-        fcm_tokken: row.fcm_tokken || "",
-      });
-      setAadharImage(rowAdharImg||"")
-      setImage(rowImg||"")
-    }
-  }, [row]);
-  console.log("our form data",formData,image,rowAdharImg)
+  const [profileData, setProfileData] = useState(null);
 
+  
 
   useEffect(() => {
     if (profileData) {
@@ -85,7 +43,7 @@ const EditPandit = () => {
         username: profileData.username || "",
         email: profileData.email || "",
         password: profileData.password || "",
-        phone: profileData.phone || "",
+        mobile: profileData.mobile || "",
         address: profileData.address || "",
         gender: profileData.gender || "male",
         city: profileData.city || "",
@@ -111,7 +69,8 @@ const EditPandit = () => {
     }
   }, [profileData]);
 
-
+  const [image, setImage] = useState(null);
+  const [aadharImage, setAadharImage] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -130,11 +89,12 @@ const EditPandit = () => {
     
 
     try {
-      const data = await updatePanditDetails(formData, image, aadharImage); // Call the API service function
-      toast.success("Pandit details updated successfully!");
+      const data = await createPandit(formData);
+      console.log(data)// Call the API service function
+      toast.success("Pandit details created successfully!");
     } catch (error) {
       toast.error(
-        error.response?.data?.message || "Failed to update Pandit details."
+        error.response?.data?.message || "Failed to create Pandit details."
       );
     }
   };
@@ -155,11 +115,11 @@ const EditPandit = () => {
         <div className="col-12">
           <div className="card shadow-lg mb-4 border-0">
             <div className="card-header text-left bg-dark text-white">
-              <h6 className="text-Capitalize">Edit Pandit</h6>
+              <h6 className="text-Capitalize">Add Pandit</h6>
             </div>
      <div className="card-body bg-light">
    <form onSubmit={handleSubmit} >
-   
+
      
         <div className="">
           
@@ -212,8 +172,8 @@ const EditPandit = () => {
       <label className="form-label">Phone</label>
       <input
         type="text"
-        name="phone"
-        value={formData.phone}
+        name="mobile"
+        value={formData.mobile}
         onChange={handleChange}
         className="form-control"
       />
@@ -311,58 +271,44 @@ const EditPandit = () => {
     </div>
 
     {/* Image */}
-   {/* Image Preview */}
-<div className="col-md-6 mb-3">
-  <label className="form-label">Image</label>
-  <input
-    type="file"
-    name="image"
-    onChange={handleFileChange}
-    className="form-control"
-  />
-  {image && (
-    <div className="mt-2">
-      <img
-        src={
-          image instanceof File
-            ? URL.createObjectURL(image)
-            : typeof image === "string" && image !== ""
-            ? image
-            : ""
-        }
-        alt="Preview"
-        style={{ width: "80%", maxHeight: "100px", objectFit: "cover" }}
+    <div className="col-md-6 mb-3">
+      <label className="form-label">Image</label>
+      <input
+        type="file"
+        name="image"
+        onChange={handleFileChange}
+        className="form-control"
       />
+      {image && (
+        <div className="mt-2">
+          <img
+            src={image instanceof File ? URL.createObjectURL(image) : ""}
+            alt="Preview"
+            style={{ width: "80%", maxHeight: "100px", objectFit: "cover" }}
+          />
+        </div>
+      )}
     </div>
-  )}
-</div>
 
-{/* Aadhar Image Preview */}
-<div className="col-md-6 mb-3">
-  <label className="form-label">Aadhar Image</label>
-  <input
-    type="file"
-    name="aadhar_image"
-    onChange={handleFileChange}
-    className="form-control"
-  />
-  {aadharImage && (
-    <div className="mt-2">
-      <img
-        src={
-          aadharImage instanceof File
-            ? URL.createObjectURL(aadharImage)
-            : typeof aadharImage === "string" && aadharImage !== ""
-            ? aadharImage
-            : ""
-        }
-        alt="Preview"
-        style={{ width: "80%", maxHeight: "100px", objectFit: "cover" }}
+    {/* Aadhar Image */}
+    <div className="col-md-6 mb-3">
+      <label className="form-label">Aadhar Image</label>
+      <input
+        type="file"
+        name="aadhar_image"
+        onChange={handleFileChange}
+        className="form-control"
       />
+      {aadharImage && (
+        <div className="mt-2">
+          <img
+            src={aadharImage instanceof File ? URL.createObjectURL(aadharImage) : ""}
+            alt="Preview"
+            style={{ width: "80%", maxHeight: "100px", objectFit: "cover" }}
+          />
+        </div>
+      )}
     </div>
-  )}
-</div>
-
   </div>
 
     
@@ -514,7 +460,7 @@ const EditPandit = () => {
 
   {/* Submit button */}
   <div className="text-end mb-3 mt-4">
-                    <button type="submit" className="me-2 btn btn-dark btn-sm">Update Pandit</button>
+                <button type="submit" className="me-2 btn btn-dark btn-sm">Add Pandit</button>
                   </div>
 
      
@@ -534,4 +480,4 @@ const EditPandit = () => {
   );
 };
 
-export default EditPandit;
+export default AddPandit;
